@@ -18,8 +18,11 @@ ipPool.acquireIP().then(res => {
 				proxy_port: d.port,
 				proxy_username: 'jungle',
 				proxy_password: 'zy5525674087',
-				id:randomNumber
+				id: randomNumber
+			}, (e) => {
+				console.log(e)
 			})
+
 		}).catch(err => console.log(err))
 	}
 })
