@@ -129,6 +129,7 @@ const UG = new Map([
 			"Android 12; LIO-AN00m Build/HUAWEILIO-AN00m; wv",
 			"Android 12; NOH-AN00 Build/HUAWEINOH-AN00; wv",
 			"Android 12; NOH-AL00 Build/HUAWEINOH-AL00; wv",
+			"Android 13; REA-AN00 Build/HONORREA-AN00; wv",
 			"Android 12; NTN-AN20 Build/HONORNTN-AN20; wv",
 			"Android 12; TAS-AN00 Build/HUAWEITAS-AN00; wv",
 			"Android 12; BMH-AN10 Build/HUAWEIBMH-AN10; wv",
