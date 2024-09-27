@@ -90,17 +90,40 @@ const UG = new Map([
 			"Chrome/122.0.6261.120"
 		],
 		machine: [
-			"Android 5.1.1; OPPO A53 Build/LMY47V; wv",
-			"Android 6.0.1; OPPO R9s Build/MMB29M; wv",
-			"Android 6.0.1; SM-C5000 Build/MMB29M; wv",
+			"Android 7.1.1; 2017030C Build/N2G47H; wv",
+			"Android 8.0; M1804E4A Build/OPR1.170623.032; wv",
+			"Android 8.1; M1803E1A Build/PKQ1.180729.001; wv",
+			"Android 9; M1908F1XE Build/QKQ1.190825.002; wv",
+			"Android 10; M2001J2E Build/QKQ1.190825.002; wv",
+			"Android 11; M2011K2C Build/RKQ1.200826.002; wv",
+			"Android 12; 2206122SC Build/SKQ1.220404.001; wv",
+			"Android 12; 2203121C Build/SKQ1.220404.001; wv",
+			"Android 14; 2201122C Build/UKQ1.230917.001; wv",
+			"Android 14; 2211133C Build/UKQ1.230804.001; wv",
+			"Android 14; 22041211AC Build/UP1A.231005.007; wv",
+			"Android 12; 22041211AC Build/SP1A.220824.003; wv",
+			"Android 13; 23049RAD8C Build/TKQ1.221114.001; wv",
+			"Android 13; 23049RAD8C Build/TP1A.220624.014; wv",
+			"Android 14; 23049RAD8C Build/UP1A.230905.011; wv",
+			"Android 13; 23049RAD8C Build/SP1A.220824.003; wv",
+			"Android 13; 23078RKD5C Build/TP1A.220624.014; wv",
+			"Android 14; 23078RKD5C Build/UP1A.230905.011; wv",
+			"Android 13; 23078RKD5C Build/SP1A.220824.003; wv",
+			"Android 14; 23013RK75C Build/UKQ1.230804.001; wv",
+			"Android 13; 23013RK75C Build/SP1A.220824.003; wv",
+			"Android 14; 23117RK66C Build/UKQ1.230804.001; wv",
+			"Android 13; 23117RK66C Build/SP1A.220824.003; wv",
+			"Android 13; 23127PN0CC Build/SP1A.220824.003; wv",
+			"Android 14; 24031PN0DC Build/UKQ1.231003.002; wv",
+			"Android 10; PECM30 Build/QP1A.190711.020; wv",
+			"Android 11; PECM30 Build/RP1A.200720.011; wv",
+			"Android 6.0.1; R9km Build/LMY47I; wv",
 			"Android 7.1.1; OD105 Build/NMF26F; wv",
 			"Android 8.1; BLA-AL00 Build/HUAWEIBLA-AL00; wv",
 			"Android 9; COL-AL10 Build/HUAWEICOL-AL10; wv",
 			"Android 10; PBEM00 Build/QKQ1.190918.001; wv",
 			"Android 10; SP200 Build/CMDCSP200; wv",
 			"Android 10; V2057A Build/QP1A.190711.020; wv",
-			"Android 11; MI 9 Build/RKQ1.200826.002; wv",
-			"Android 11; Mi 9 Lite Build/RKQ1.200826.002; wv",
 			"Android 12; DCO-AL00 Build/HUAWEIDCO-AL00; wv",
 			"Android 12; FNE-AN00 Build/HONORFNE-AN00; wv",
 			"Android 12; LIO-AN00m Build/HUAWEILIO-AN00m; wv",
@@ -109,42 +132,35 @@ const UG = new Map([
 			"Android 12; NTN-AN20 Build/HONORNTN-AN20; wv",
 			"Android 12; TAS-AN00 Build/HUAWEITAS-AN00; wv",
 			"Android 12; BMH-AN10 Build/HUAWEIBMH-AN10; wv",
-			"Android 13; 23049RAD8C Build/TKQ1.221114.001; wv",
 			"Android 13; RMX3370 Build/TP1A.220905.001; wv",
 			"Android 13; V2024A Build/TP1A.220624.014; wv",
 			"Android 13; V2148A Build/TP1A.220624.014; wv",
 			"Android 13; V2304A Build/TP1A.220624.014; wv",
 			"Android 13; WDY-AN00 Build/HONORWDY-AN00; wv",
-			"Android 13; 23078RKD5C Build/TP1A.220624.014; wv",
-			"Android 13; 23049RAD8C Build/TP1A.220624.014; wv",
-			"Android 14; 2201122C Build/UKQ1.230917.001; wv",
-			"Android 14; 22041211AC Build/UP1A.231005.007; wv",
-			"Android 14; 2211133C Build/UKQ1.230804.001; wv",
-			"Android 14; 23013RK75C Build/UKQ1.230804.001; wv",
-			"Android 14; 23049RAD8C Build/UP1A.230905.011; wv",
-			"Android 14; 23117RK66C Build/UKQ1.230804.001; wv",
-			"Android 14; 23078RKD5C Build/UP1A.230905.011; wv",
-			"Android 14; 23127PN0CC Build/UKQ1.230804.001; wv",
-			"Android 14; 24031PN0DC Build/UKQ1.231003.002; wv",
-			"Android 14; MEIZU 20 Build/UKQ1.230917.001; wv",
+			"Android 13; M381Q Build/SP1A.210812.015; wv",
 			"Android 14; PGBM10 Build/UKQ1.230924.001; wv",
+			"Android 13; PGBM10 Build/TP1A.220905.001; wv",
 			"Android 14; PGJM10 Build/UKQ1.230924.001; wv",
-			"Android 14; PHB110 Build/TP1A.220905.001; wv",
+			"Android 12; PGJM10 Build/SP1A.220824.003; wv",
+			"Android 13; PHB110 Build/TP1A.220905.001; wv",
+			"Android 13; PHB110 Build/SP1A.220824.003; wv",
+			"Android 6.0.1; SM-C5000 Build/MMB29M; wv",
 			"Android 14; SM-S9110 Build/UP1A.231005.007; wv",
-			"Android 14; SM-S9110 Build/UP1A.231005.007; wv",
+			"Android 13; SM-S9110 Build/SP1A.220824.003; wv",
 			"Android 14; V2196A Build/UP1A.231005.007; wv",
-			"Android 14; V2217A Build/UP1A.231005.007; wv",
-			"Android 14; V2238A Build/UP1A.231005.007; wv",
+			"Android 13; V2217A Build/TP1A.220624.003; wv",
+			"Android 13; V2238A Build/TP1A.220624.014; wv",
 			"Android 14; V2307A Build/UP1A.231005.007; wv",
 			"Android 14; V2308A Build/UP1A.231005.007; wv",
-			"Android 14; V2338A Build/UP1A.231005.007; wv"
+			"Android 14; V2338A Build/UP1A.231005.007; wv",
+			"Android 12; ALN-AL00 Build/HUAWEI"
 		]
 	}],
 	['iphone', {
 		head: 'iPhone',
 		webkit: '605.1.15',
 		version: 'Mobile/15E148',
-		chromeVersion:[],
+		chromeVersion: [],
 		machine: [
 			'CPU iPhone OS 17_3 like Mac OS X',
 		]
@@ -153,7 +169,7 @@ const UG = new Map([
 		head: 'iPad',
 		webkit: '605.1.15',
 		version: 'Mobile/15E148',
-		chromeVersion:[],
+		chromeVersion: [],
 		machine: [
 			'CPU OS 17_3_1 like Mac OS X',
 		]
@@ -162,10 +178,10 @@ const UG = new Map([
 const getUserAgent = ({osType = 'android', netType = '普通宽带'}) => {
 	const ot = UG.get(osType)
 	let version = ''
-	if (osType === 'android'){
+	if (osType === 'android') {
 		const cv = ot.chromeVersion[Math.floor(Math.random() * 84)]
-		let MQQ=''
-		if (Number(cv.split("/")[1].split('.')[0])<100){
+		let MQQ = ''
+		if (Number(cv.split("/")[1].split('.')[0]) < 100) {
 			MQQ = ' MQQBrowser/6.2 TBS/044607'
 		}
 		version = ` ${cv}${MQQ} Mobile Safari/537.36`
@@ -175,6 +191,6 @@ const getUserAgent = ({osType = 'android', netType = '普通宽带'}) => {
 // module.exports = {
 // 	UG,
 // }
-const userAgent = getUserAgent({osType:'android',netType:'普通宽带'});
+const userAgent = getUserAgent({osType: 'android', netType: '普通宽带'});
 
 console.log(userAgent)
