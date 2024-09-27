@@ -1,5 +1,6 @@
 const AdmZip = require('adm-zip');
 const fs = require('fs');
+const {nanoid} = require("nanoid");
 const createProxyAuthExtension = async ({
 	                                        proxy_host = '',
 	                                        proxy_port = 0,
@@ -7,8 +8,8 @@ const createProxyAuthExtension = async ({
 	                                        proxy_password = '',
 	                                        scheme = 'http',
 	                                        plugin_path = '',
-	                                        id = ''
                                         }) => {
+	const id = nanoid(10)
 	fs.copyFileSync('Selenium-Chrome-HTTP-Private-Proxy.zip', `Selenium-Chrome-HTTP-Private-Proxy-${id}.zip`)
 	plugin_path = `Selenium-Chrome-HTTP-Private-Proxy-${id}.zip`
 	let manifest_json = `
