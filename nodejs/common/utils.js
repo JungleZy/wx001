@@ -8,11 +8,13 @@ const createProxyAuthExtension = async ({
 	                                        proxy_username = '',
 	                                        proxy_password = '',
 	                                        scheme = 'http',
-	                                        plugin_path = '',
+	                                        platform = 'iPhone',
+	                                        vendor = 'Apple Computer,Inc.'
                                         }) => {
 	const id = nanoid(10)
 	fs.copyFileSync('Selenium-Chrome-HTTP-Private-Proxy.zip', `Selenium-Chrome-HTTP-Private-Proxy-${id}.zip`)
 	plugin_path = `Selenium-Chrome-HTTP-Private-Proxy-${id}.zip`
+
 	let manifest_json = `
 	{
         "version": "1.0.0",
@@ -33,8 +35,7 @@ const createProxyAuthExtension = async ({
         "minimum_chrome_version":"22.0.0"
     }
 	`
-	let background_js = `
-	var config = {
+	let background_js = `var config = {
     mode: "fixed_servers",
     rules: {
       singleProxy: {
@@ -60,9 +61,29 @@ const createProxyAuthExtension = async ({
               ['blocking']
   );
 	`
+	// let content_js = `Object.defineProperty(navigator,'platform',{get:function(){return 'iPhone';}});`
+// 	let content_js = `var s = document.createElement('script');
+// 	s.textContent = '(' + function () {
+// 		'use strict';
+// 		Object.defineProperty(navigator, 'platform', {
+// 			get: function () {
+// 				return '${platform}';
+// 			}
+// 		});
+// 		Object.defineProperty(navigator, 'vendor', {
+// 			get: function () {
+// 				return '${vendor}';
+// 			}
+// 		});
+// 	} + ')();';
+// 	document.documentElement.appendChild(s);
+// 	s.remove();
+// `
 	const zip = new AdmZip(`${plugin_path}`);
 	zip.updateFile(zip.getEntry("manifest.json"), Buffer.from(manifest_json))
 	zip.updateFile(zip.getEntry("background.js"), Buffer.from(background_js))
+	// zip.updateFile(zip.getEntry("content.js"), Buffer.from(content_js))
+	// zip.updateFile(zip.getEntry("x1.js"), Buffer.from(content_js))
 	await zip.writeZip(null);
 	return `Selenium-Chrome-HTTP-Private-Proxy-${id}.zip`
 }
