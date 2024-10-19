@@ -1,6 +1,6 @@
 {
-  "name": "ee",
-  "version": "1.0.4",
+  "name": "wx",
+  "version": "1.0.6",
   "description": "A fast, desktop software development framework",
   "main": "main.js",
   "scripts": {
@@ -52,6 +52,7 @@
     "nodemon": "^2.0.16"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.8.2",
     "@lem0-packages/puppeteer-page-proxy": "^1.4.1",
     "better-sqlite3": "^8.4.0",
     "dayjs": "^1.10.7",

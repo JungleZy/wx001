@@ -53,29 +53,6 @@
 			</div>
 		</div>
 		<div class="w-full p-2 mt-2 bg-white border-radius-6">
-			<div class="top-title">IP校验配置-纯真</div>
-			<div class="w-full">
-				<div class="w-full/2 py-2 layout-left-center">
-					<div class="label layout-right-center">AppCode：</div>
-					<div class="right layout-left-center">
-						<a-input v-model:value="appCode" placeholder="AppCode" />
-					</div>
-				</div>
-				<div class="w-full py-2 layout-left-center">
-					<div class="label layout-right-center">校验地址：</div>
-					<div class="right layout-left-center">
-						<a-input v-model:value="verifyUrl" placeholder="校验地址" />
-					</div>
-				</div>
-			</div>
-			<div class="w-full py-2 layout-right-center">
-				<a-button type="primary" @click="onUpdateIPVerify">
-					<CloudSyncOutlined />
-					更新
-				</a-button>
-			</div>
-		</div>
-		<div class="w-full p-2 mt-2 bg-white border-radius-6">
 			<div class="top-title">IP校验配置-IP66</div>
 			<div class="w-full">
 				<div class="w-full py-2 layout-left-center">
@@ -171,7 +148,6 @@
 	const username = ref('')
 	const password = ref('')
 	const appCode = ref('')
-	const verifyUrl = ref('')
 	const verifyUrl66 = ref('')
 	const verifyUrl138 = ref('')
 	const lockPassword = ref('')
@@ -179,7 +155,6 @@
 
 	onMounted(async () => {
 		const ip = await networkDB.getItem('api-pool')
-		const verify = await networkDB.getItem('api-verify')
 		const verify66 = await networkDB.getItem('api-verify-66')
 		const verify138 = await networkDB.getItem('api-verify-138')
 		lockPassword.value = await networkDB.getItem('lock-password')
@@ -195,11 +170,6 @@
 			secret.value = urlParams.secret
 			time.value = parseInt(urlParams.time)
 			num.value = parseInt(urlParams.num)
-		}
-		if (verify) {
-			const urlParams = getUrlParams(new URL(verify.verifyUrl))
-			appCode.value = urlParams.AppCode
-			verifyUrl.value = verify.verifyUrl
 		}
 		if (verify66) {
 			verifyUrl66.value = verify66.verifyUrl
@@ -235,13 +205,6 @@
 			message.success('IP池配置更新成功！')
 		})
 	}
-	const onUpdateIPVerify = (() => {
-		networkDB.setItem('api-verify', {
-			verifyUrl: verifyUrl.value,
-		}).then(res => {
-			message.success('IP校验配置更新成功！')
-		})
-	})
 	const onUpdateIPVerify66 = (() => {
 		networkDB.setItem('api-verify-66', {
 			verifyUrl: verifyUrl66.value,

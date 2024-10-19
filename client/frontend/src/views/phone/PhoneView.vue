@@ -9,10 +9,10 @@
 				<div class="layout-center" style="width: 92px">分类</div>
 				<div class="layout-center" style="width: 130px">机型</div>
 				<div class="layout-center" style="flex-grow: 1" ref="typeWidthRef">机型代码</div>
-				<div class="layout-center" style="width: 100px">webGLVendor</div>
-				<div class="layout-center" style="width: 100px">webGLRenderer</div>
-				<div class="layout-center" style="width: 120px">分辨率</div>
-				<div class="layout-center" style="width: 80px">webkit</div>
+				<div class="layout-center" style="width: 100px">webGL-V</div>
+				<div class="layout-center" style="width: 110px">webGL-R</div>
+				<div class="layout-center" style="width: 110px">分辨率</div>
+				<div class="layout-center" style="width: 60px">webkit</div>
 				<div class="layout-center" style="width: 80px">是否启用</div>
 				<div class="layout-center" style="width: 60px">操作</div>
 			</div>
@@ -31,22 +31,28 @@
 						<div class="layout-center px-1" style="width: 100px">
 							<a-input v-model:value="w[1].webGLVendor" />
 						</div>
-						<div class="layout-center px-1" style="width: 100px">
+						<div class="layout-center px-1" style="width: 110px">
 							<a-input v-model:value="w[1].webGLRenderer" />
 						</div>
-						<div class="layout-center px-1" style="width: 120px">
+						<div class="layout-center px-1" style="width: 110px">
 							<a-input-group compact>
-								<a-input-number v-model:value="w[1].size[0]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[1]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[2]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[3]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[4]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[5]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[6]" style="width: 50%" />
-								<a-input-number v-model:value="w[1].size[7]" style="width: 50%" />
+								<a-input-number v-model:value="w[1].size[0]" style="width: 50%" :controls="false" />
+								<a-input-number v-model:value="w[1].size[1]" style="width: 50%" :controls="false" />
+							</a-input-group>
+							<a-input-group compact>
+								<a-input-number v-model:value="w[1].size[2]" style="width: 50%" :controls="false" />
+								<a-input-number v-model:value="w[1].size[3]" style="width: 50%" :controls="false" />
+							</a-input-group>
+							<a-input-group compact>
+								<a-input-number v-model:value="w[1].size[4]" style="width: 50%" :controls="false" />
+								<a-input-number v-model:value="w[1].size[5]" style="width: 50%" :controls="false" />
+							</a-input-group>
+							<a-input-group compact>
+								<a-input-number v-model:value="w[1].size[6]" style="width: 50%" :controls="false" />
+								<a-input-number v-model:value="w[1].size[7]" style="width: 50%" :controls="false" />
 							</a-input-group>
 						</div>
-						<div class="layout-center px-1" style="width: 80px">
+						<div class="layout-center px-1" style="width: 60px">
 							<a-input v-model:value="w[1].webkit" />
 						</div>
 						<div class="layout-center" style="width: 80px">
@@ -70,10 +76,10 @@
 						</div>
 
 						<div class="layout-center" style="width: 100px;line-height: 32px">{{ w[1].webGLVendor }}</div>
-						<div class="layout-center" style="width: 100px;line-height: 32px">{{ w[1].webGLRenderer }}</div>
-						<div class="layout-center" style="width: 120px;line-height: 32px">{{ w[1].size[0] }}X{{ w[1].size[1] }}
+						<div class="layout-center" style="width: 110px;line-height: 32px">{{ w[1].webGLRenderer }}</div>
+						<div class="layout-center" style="width: 110px;line-height: 32px">{{ w[1].size[0] }}X{{ w[1].size[1] }}
 						</div>
-						<div class="layout-center" style="width: 80px;line-height: 32px">{{ w[1].webkit }}</div>
+						<div class="layout-center" style="width: 60px;line-height: 32px">{{ w[1].webkit }}</div>
 						<div class="layout-center" style="width: 80px;line-height: 32px">
 							<a-switch @change="onChangeEnable(w)" v-model:checked="w[1].enable" checked-children="开"
 												un-checked-children="关" />
@@ -135,8 +141,8 @@
 			os: 'iPhone',
 			type: '',
 			code: '',
-			webGLVendor:'',
-			webGLRenderer:'',
+			webGLVendor: '',
+			webGLRenderer: '',
 			size: [0, 0],
 			webkit: '',
 			enable: true,

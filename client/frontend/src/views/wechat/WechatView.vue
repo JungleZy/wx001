@@ -54,10 +54,10 @@
 												un-checked-children="关" />
 						</div>
 						<div class="layout-center" style="width: 60px;line-height: 32px;font-size: 20px">
+							<EditOutlined @click="onEdit(w[0])" class="cursor-pointer mr-1" />
 							<DeleteOutlined @click="onRemove(w[0])" class="cursor-pointer" style="color: red" />
 						</div>
 					</template>
-
 				</div>
 			</div>
 		</div>
@@ -66,7 +66,7 @@
 <script setup>
 	import { onMounted, ref } from 'vue'
 	import { nanoid } from 'nanoid'
-	import { DeleteOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons-vue'
+	import { DeleteOutlined, CheckOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons-vue'
 	import { wechatDB } from '@/common/DB.js'
 
 	const wechatList = ref([])
@@ -119,9 +119,11 @@
 	}
 	const onRemove = (id) => {
 		wechatDB.removeItem(id).then(res => {
-			console.log('dddd')
 			findData()
 		})
+	}
+	const onEdit = (id) => {
+
 	}
 	const onHandleAddWechat = (e) => {
 		if (e) {

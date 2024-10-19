@@ -286,13 +286,15 @@
 		border-radius: 6px;
 
 		.main {
-			height: calc(100% - 39px);
+			height: calc(100% - 40px);
+			border-radius: 6px;
 
 			.main-left {
 				height: 100%;
 				width: calc(100% - 60px);
 				border-right: 1px solid #f1f1f1;
 				background-color: #f1f1f1;
+				border-radius: 6px;
 			}
 
 			.main-right {
