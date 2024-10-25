@@ -30,11 +30,11 @@ class WorkspaceService extends Service {
 			event.sender.send(ipcWorkMsg, m)
 		})
 		proc.on('close', (code) => {
-			// console.log(code)
+			console.log(code)
 			if (code === 0) {
 				event.sender.send(ipcWorkMsg, { id: args.id, type: 'end' })
 			} else {
-				event.sender.send(ipcWorkMsg, { id: args.id, type: 'error' })
+				event.sender.send(ipcWorkMsg, { id: args.id, type: 'error', message: '' })
 			}
 		})
 		return true

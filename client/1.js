@@ -126,10 +126,10 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 			platform: userAgent.includes('iPhone') ? 'iPhone' : 'Linux aarch64',
 			userAgent: userAgent,
 			viewport: {
-				isMobile: true,
 				width: size.xviews.outerWidth,
 				height: size.xviews.outerHeight,
 				deviceScaleFactor: 3,
+				isMobile: true,
 				hasTouch: true,
 				isLandscape: false,
 			},
@@ -138,9 +138,9 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 			xviews: size.xviews,
 		}
 		await page.setViewport({
-			width: size.xviews.outerWidth,
-			height: size.xviews.outerHeight,
-			deviceScaleFactor: 3,
+			width: size.xviews.screen.width,
+			height: size.xviews.screen.height,
+			deviceScaleFactor: 1,
 			isMobile: true,
 			hasTouch: true,
 			isLandscape: false,
@@ -148,16 +148,13 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		await page.evaluateOnNewDocument((options) => {
 			window.innerWidth = options.xviews.innerWidth
 			window.innerHeight = options.xviews.innerHeight
-
 			window.outerWidth = options.xviews.outerWidth
 			window.outerHeight = options.xviews.outerHeight
 
-
-			window.availWidth = window.screen.availWidth = options.xviews.screen.availWidth
-			window.availHeight = window.screen.availHeight = options.xviews.screen.availHeight
-
-			window.width = window.screen.width = options.xviews.screen.availWidth
-			window.height = window.screen.height = options.xviews.screen.availHeight
+			screen.availWidth = options.xviews.screen.availWidth
+			screen.availHeight = options.xviews.screen.availHeight
+			screen.width = options.xviews.screen.width
+			screen.height = options.xviews.screen.height
 
 			window.screenLeft = 0
 			window.screenTop = 0
@@ -212,11 +209,24 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 				'sec-ch-ua-platform': '"Android"',
 			})
 		}
-		await page.setRequestInterception(true)
-		page.on('request', interceptedRequest => {
-			console.log(interceptedRequest)
-			interceptedRequest.continue()
-		})
+
+		if (userAgent.includes('iPhone')) {
+			await page.setRequestInterception(true)
+			page.on('request', request => {
+				const headers = Object.assign({}, request.headers(), {
+					'accept-language': 'zh-CN,zh-Hans;q=0.9',
+					'accept-encoding': 'gzip, deflate, br',
+					'sec-ch-ua': undefined,
+					'sec-ch-ua-platform': undefined,
+					'sec-ch-ua-mobile': undefined,
+					'sec-fetch-user': undefined,
+					'upgrade-insecure-requests': undefined,
+					'cache-control': undefined,
+				})
+				request.continue({ headers })
+			})
+		}
+
 		await page.goto('https://www.dingxiang-inc.com/business/fingerprint')
 		await page.goto(url)
 	} catch (e) {
@@ -228,9 +238,10 @@ const argv = process.argv
 id = argv[11]
 // cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-129.0.6668.89', 'chrome-win64', 'chrome.exe')
 cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-129.0.6668.91', 'chrome-win64', 'chrome.exe')
+// cPath = path.join(argv[12], 'puppeteer', 'chrome', 'Chrome-bin', 'chrome.exe')
 run(argv[2], argv[3], parseInt(argv[4]), argv[5], argv[6], JSON.parse(argv[7]), argv[8], argv[9], argv[10]).then()
 process.on('message', async (m) => {
-	console.log(m)
+	// console.log(m)
 	if (m === 'close') {
 		process.exit(0)
 	}

@@ -43,10 +43,8 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 				'--no-zygote',
 				'--disable-setuid-sandbox',
 				'--window-size=850,1366',
-				'--blink-settings=imagesEnabled=false',
 				'--disable-web-security',
 				'--disable-features=UserAgentClientHint',
-				'--fingerprints=' + (Math.floor(Math.random() * (999999999 - 1000 + 1)) + 1000),
 			],
 		})
 		browser.on('targetdestroyed', async (e) => {
@@ -56,9 +54,18 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		})
 		page = await browser.newPage()
 		process.send({ id: id, type: 'running' })
-
+		let random1 = Math.random().toString(36).toUpperCase().slice(2, -1)
+		let random2 = Math.random().toString(36).toUpperCase().slice(2, -1)
+		let random3 = Math.random().toString(36).toUpperCase().slice(2, -1)
+		let random4 = Math.random().toString(36).toUpperCase().slice(2, -1)
+		let random5 = Math.random().toString(36).toUpperCase().slice(2, -1)
+		let random = random1 + random2 + random3 + random4 + random5
+		let randomLeft = Math.floor(Math.random() * 80)
+		let randomRight = Math.floor(Math.random() * 80)
+		let randomWEBGL = Math.floor(Math.random() * 1000)
 		const options = {
 			id: id,
+			random: [random, randomLeft, randomRight, randomWEBGL],
 			canvas: { chance: 95, shift: 4 },
 			compatibleMediaMines: {
 				'audio': [
@@ -168,8 +175,8 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		require('./finger/navigator.hardware')(page, options)
 		require('./finger/navigator.language')(page, options)
 		require('./finger/navigator.permissions')(page, options)
-		// await require('./finger/webgl')(page, options)
-		// await require('./finger/canvas')(page, options)
+		await require('./finger/webgl')(page, options)
+		await require('./finger/canvas')(page, options)
 
 		if (userAgent.includes('iPhone')) {
 			await page.evaluateOnNewDocument(() => {
@@ -229,8 +236,17 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		await page.goto(url)
 	} catch (e) {
 		process.send({ id: id, type: 'error', message: e.toString() })
-		await page.close()
-		await browser.close()
+		try {
+			await page?.close()
+		} catch (e) {
+
+		}
+		try {
+			await browser?.close()
+		} catch (e) {
+
+		}
+
 		process.exit(0)
 	}
 }
@@ -238,8 +254,8 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 const argv = process.argv
 id = argv[11]
 // cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-129.0.6668.89', 'chrome-win64', 'chrome.exe')
-// cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-129.0.6668.91', 'chrome-win64', 'chrome.exe')
-cPath = path.join(argv[12], 'puppeteer', 'chrome', 'Chrome-bin', 'chrome.exe')
+cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-130.0.6723.58', 'chrome-win64', 'chrome.exe')
+// cPath = path.join(argv[12], 'puppeteer', 'chrome', 'Chrome-bin', 'chrome.exe')
 run(argv[2], argv[3], parseInt(argv[4]), argv[5], argv[6], JSON.parse(argv[7]), argv[8], argv[9], argv[10]).then()
 process.on('message', async (m) => {
 	// console.log(m)

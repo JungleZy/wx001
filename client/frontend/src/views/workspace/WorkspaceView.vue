@@ -38,7 +38,7 @@
 				</a-button>
 			</div>
 		</div>
-		<div class="w-full workspace-statistics p-2 layout-center">
+		<div class="w-full workspace-statistics p-2 layout-center" style="font-weight: bold">
 			<a-row class="w-full">
 				<a-col :span="12" class="layout-left-center pl-6">
 					<svg class="icon" viewBox="0 0 1024 1024"
@@ -61,9 +61,13 @@
 						class="selected"></path>
 				</svg>
 				</a-col>
+				<a-col :span="24" class="layout-left-center pl-6 pt-1">
+					自动执行：{{ statistics[8] + statistics[9] }}，手动执行：{{ statistics[12] + statistics[13]
+					}}，苹果：{{ statistics[10] }}%，安卓：{{ statistics[11] }}%
+				</a-col>
 			</a-row>
 		</div>
-		<div class="workspace-content w-full overflow-auto p-2">
+		<div class="workspace-content w-full overflow-auto pr-2 pb-2 pl-2">
 			<div class="w-full workspace-content-box" v-for="(w,index) in workspace" :key="'workspace_'+index">
 				<div class="w-full workspace-content-box-item layout-center" v-if="w.loading">
 					数据生成中{{ w.type === 0 ? '，获取IP中...' : '，获取IP成功，正在校验IP中...' }}
@@ -137,9 +141,13 @@
 							</a-col>
 						</a-row>
 						<a-row class="item w-full">
+							<!--							<a-col class="layout-left-center" :span="8">-->
+							<!--								<div class="label layout-right-center">IP商家：</div>-->
+							<!--								{{ w.ipAddress ? w.isp : '暂无' }}-->
+							<!--							</a-col>-->
 							<a-col class="layout-left-center" :span="8">
-								<div class="label layout-right-center">IP商家：</div>
-								{{ w.ipAddress ? w.isp : '暂无' }}
+								<div class="label layout-right-center">头次数：</div>
+								{{ w.coIp ? w.coIp : 0 }}
 							</a-col>
 							<a-col class="layout-left-center" :span="9">
 								<div class="label layout-right-center">IP位置：</div>
@@ -169,22 +177,22 @@
 					</div>
 					<div class="right layout-left-top">
 						<div @click="onRefreshIp(w,index)" class="w-full h-1/4 layout-center cursor-pointer"
-								 style="background-color: #1677ff;color: #ffffff;border-radius: 6px 6px 0 0;border-bottom: 1px solid #ccc">
+								 style="background-color: #64a3ff;color: #ffffff;border-radius: 6px 6px 0 0;border-bottom: 1px solid #ccc">
 							刷新IP
 						</div>
 						<div @click="onRefreshUA(w,index)" class="w-full h-1/4 layout-center cursor-pointer"
-								 style="background-color: #1677ff;color: #ffffff;border-bottom: 1px solid #ccc">
+								 style="background-color: #64a3ff;color: #ffffff;border-bottom: 1px solid #ccc">
 							刷新UA
 						</div>
 						<div @click="onDeleteWork(w,index)" class="w-full h-1/4 layout-center cursor-pointer"
-								 style="background-color: #ff165c;color: #ffffff;border-bottom: 1px solid #ccc">
+								 style="background-color: #64a3ff;color: #ffffff;border-bottom: 1px solid #ccc">
 							删除任务
 						</div>
 						<template v-if="w.status === 0">
-							<template v-if="w.ipType[0] === '家庭宽带' && w.ipType[1] === '城域网'">
+							<template v-if="w.ipType[0] === '家庭宽带' && w.ipType[1] === '城域网' && w.coIp<6">
 								<div class="w-full h-1/4 layout-center cursor-pointer"
 										 style="color: #ffffff;border-radius: 0 0 6px 6px;"
-										 :style="{ backgroundColor: '#1677ff'}">
+										 :style="{ backgroundColor: '#64a3ff'}">
 									<a-statistic-countdown :value="w.countdown" style="line-height: normal"
 																				 :value-style="{ color: '#ffffff',fontSize:'14px' }"
 																				 @finish="onRun(w,index)">
@@ -194,7 +202,7 @@
 							<template v-else>
 								<div @click="onRun(w,index)" class="w-full h-1/4 layout-center cursor-pointer"
 										 style="color: #ffffff;border-radius: 0 0 6px 6px;"
-										 :style="{ backgroundColor: '#1677ff'}">
+										 :style="{ backgroundColor: '#64a3ff'}">
 									执行任务
 								</div>
 							</template>
@@ -224,14 +232,13 @@
 	import { AndroidOutlined, AppleOutlined, LoadingOutlined, DownOutlined } from '@ant-design/icons-vue'
 	import { phoneDB, wechatDB, browserDB, networkDB, workspaceDB, workspaceBaseDB, configDB } from '@/common/DB.js'
 	import { onMounted, ref, watch, computed } from 'vue'
-	import { getRandomInt, getRandomNumber, getRandomType, getUrlParams, replaceUrlParam } from '@/utils/Utlis.js'
+	import { getRandomInt, getRandomNumber, getRandomType, getUrlParams } from '@/utils/Utlis.js'
 	import { IpPool } from '@/utils/IpPool.js'
 	import dayjs from 'dayjs'
 	import { ipc } from '@/utils/ipcRenderer.js'
 	import { workspaceApiRoute } from '@/api/main.js'
 	import { nanoid } from 'nanoid'
-	import { message } from 'ant-design-vue'
-	import { Modal } from 'ant-design-vue'
+	import { message,Modal } from 'ant-design-vue'
 
 	const phoneData = ref(new Map([['Android', []], ['iPhone', []]]))
 	const wechatData = ref(new Map([['Android', []], ['iPhone', []]]))
@@ -244,10 +251,12 @@
 	const days = ref([])
 	const workUrl = ref('')
 	const webIds = ref([])
+	const ips = ref(new Map())
 	const autoWork = ref(0)
 
 	watch(workUrl, () => {
 		webIds.value = []
+		ips.value = new Map()
 	})
 	const statistics = computed(() => {
 		let a = 0
@@ -257,9 +266,18 @@
 		let is = 0
 		let ie = 0
 		let c = 0
+		let auto_a = 0
+		let auto_i = 0
+		let auto_no_a = 0
+		let auto_no_i = 0
 		workspace.value.forEach((value, index) => {
 			if (value.os === 'Android') {
 				if (value.status === 3) {
+					if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 6) {
+						auto_a++
+					} else {
+						auto_no_a++
+					}
 					as++
 				} else if (value.status === 4) {
 					ae++
@@ -268,6 +286,11 @@
 				c++
 			} else if (value.os === 'iPhone') {
 				if (value.status === 3) {
+					if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 6) {
+						auto_i++
+					} else {
+						auto_no_i++
+					}
 					is++
 				} else if (value.status === 4) {
 					ie++
@@ -275,14 +298,18 @@
 				i++
 				c++
 			}
+
 		})
 		const ab = (a / c * 100)
 		const ib = (i / c * 100)
-		return [a, i, !isNaN(ab) ? ab.toFixed(2) : 0, !isNaN(ib) ? ib.toFixed(2) : 0, as, is, ae, ie]
+		const aa = ((auto_a + auto_no_a) / (auto_a + auto_i + auto_no_a + auto_no_i) * 100)
+		const ia = ((auto_i + auto_no_i) / (auto_a + auto_i + auto_no_a + auto_no_i) * 100)
+		return [a, i, !isNaN(ab) ? ab.toFixed(2) : 0, !isNaN(ib) ? ib.toFixed(2) : 0, as, is, ae, ie,
+			auto_a, auto_i, !isNaN(aa) ? aa.toFixed(2) : 0, !isNaN(ia) ? ia.toFixed(2) : 0,
+			auto_no_a, auto_no_i]
 	})
 
 	ipc.on(workspaceApiRoute.workMsg, (event, result) => {
-		console.log(result)
 		if (result.type === 'running') {
 			workspace.value.filter(item => {
 				if (result.id === item.id) {
@@ -294,6 +321,10 @@
 			let msg = ''
 			if (result.message.includes('ERR_TUNNEL_CONNECTION_FAILED')) {
 				msg = '代理IP连接失败，请检测当前IP是否已过期！'
+			} else if (result.message.includes('net::ERR_ABORTED')) {
+				msg = '任务由于网络原因被异常中止！'
+			} else if (result.message.includes('Most likely the page has been closed')) {
+				msg = '任务会话已关闭！'
 			} else {
 				msg = result.message
 			}
@@ -323,6 +354,10 @@
 		})
 	})
 	onMounted(async () => {
+		const res = await configDB.getItem('workspaceUrl')
+		if (res) {
+			workUrl.value = res
+		}
 		workspaceBaseDB.setItem(`${nowDay.value}`, nowDay.value)
 		workspaceBaseDB.iterate((value, key) => {
 			days.value.push({ key, value })
@@ -331,6 +366,16 @@
 		})
 		workspaceDB(nowDay.value).iterate((value, key) => {
 			workspace.value.push(value)
+			if (value.url === workUrl.value) {
+				const ip3 = getFirstThreeSegmentsOfIP(value.rip ? value.rip : value.ip)
+				let newVar = ips.value.get(ip3)
+				if (newVar) {
+					newVar = newVar + 1
+				} else {
+					newVar = 1
+				}
+				ips.value.set(ip3, newVar)
+			}
 		}).then(res => {
 			workspace.value.sort((a, b) => b.createTime - a.createTime)
 		})
@@ -367,11 +412,7 @@
 			})
 		})
 		autoWork.value = await networkDB.getItem('autoWork')
-		configDB.getItem('workspaceUrl').then(res => {
-			if (res) {
-				workUrl.value = res
-			}
-		})
+
 	})
 	const onChangeWorkUrl = () => {
 		configDB.setItem('workspaceUrl', workUrl.value)
@@ -381,6 +422,9 @@
 	}
 	const onWorkTimeFinish = (w) => {
 		w.time = 0
+	}
+	const getFirstThreeSegmentsOfIP = (ipAddress) => {
+		return ipAddress.split('.').slice(0, 3).join('.')
 	}
 	const onAddWorkspace = (e) => {
 		if (!workUrl.value) {
@@ -405,6 +449,14 @@
 				if (res1.data.code === 200) {
 					ipPool.value.verifyIP138(d.rip ? d.rip : d.ip).then(res2 => {
 						if (res2.status === 200) {
+							const ip3 = getFirstThreeSegmentsOfIP(d.rip ? d.rip : d.ip)
+							let newVar = ips.value.get(ip3)
+							if (newVar) {
+								newVar = newVar + 1
+							} else {
+								newVar = 1
+							}
+							ips.value.set(ip3, newVar)
 							const { ua, browser } = getUserAgent(e, phone, wechat, res2.data.data[7])
 							const number = workspace.value.findIndex(item => item.id === id)
 							const item = {
@@ -422,6 +474,7 @@
 								ip: d.ip,
 								rip: d.rip,
 								port: d.port,
+								coIp: newVar,
 								ipType: [res1.data.data.scenes.usage_type, res2.data.data[7] ? res2.data.data[7] : '未知'],
 								isp: res2.data.data[4],
 								ipAddress: res2.data.data[1] + res2.data.data[2] + res2.data.data[3],
@@ -494,9 +547,18 @@
 				if (res1.data.code === 200) {
 					ipPool.value.verifyIP138(d.rip ? d.rip : d.ip).then(res2 => {
 						if (res2.status === 200) {
+							const ip3 = getFirstThreeSegmentsOfIP(d.rip ? d.rip : d.ip)
+							let newVar = ips.value.get(ip3)
+							if (newVar) {
+								newVar = newVar + 1
+							} else {
+								newVar = 1
+							}
+							ips.value.set(ip3, newVar)
 							w.ip = d.ip
 							w.rip = d.rip
 							w.port = d.port
+							w.coIp = newVar
 							w.ipType = [res.data.data.netWorkType, res1.data.data.scenes.usage_type, res2.data.data[7] ? res2.data.data[7] : '未知']
 							w.isp = res.data.data.isp
 							w.ipAddress = d.prov + d.city
@@ -628,11 +690,12 @@
 		user-select: text;
 
 		&-statistics {
-			height: 52px;
+			height: 53px;
+			font-size: 14px;
 		}
 
 		&-content {
-			height: calc(100% - 104px);
+			height: calc(100% - 106px);
 
 			&-box {
 				border-radius: 6px;

@@ -1,6 +1,6 @@
 {
   "name": "wx",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A fast, desktop software development framework",
   "main": "main.js",
   "scripts": {
@@ -64,8 +64,8 @@
     "nanoid": "^5.0.7",
     "nedb-promises": "^6.2.3",
     "node-7z": "^3.0.0",
-    "puppeteer": "^23.5.2",
-    "puppeteer-core": "^23.5.2",
+    "puppeteer": "^23.6.0",
+    "puppeteer-core": "^23.6.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin": "^3.2.3",
     "puppeteer-extra-plugin-proxy": "^1.0.2",

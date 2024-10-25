@@ -37,8 +37,8 @@
 												un-checked-children="关" />
 						</div>
 						<div class="layout-center" style="width: 60px;font-size: 20px">
-							<CloseOutlined @click="onHandleAddWechat(false)" style="color: red" class="cursor-pointer" />
-							<CheckOutlined @click="onHandleAddWechat(true)" style="color: #1676fd" class="cursor-pointer ml-2" />
+							<CloseOutlined @click="onHandleAddWechat(false,w)" style="color: red" class="cursor-pointer" />
+							<CheckOutlined @click="onHandleAddWechat(true,w)" style="color: #1676fd" class="cursor-pointer ml-2" />
 						</div>
 					</template>
 					<template v-else>
@@ -54,7 +54,7 @@
 												un-checked-children="关" />
 						</div>
 						<div class="layout-center" style="width: 60px;line-height: 32px;font-size: 20px">
-							<EditOutlined @click="onEdit(w[0])" class="cursor-pointer mr-1" />
+							<EditOutlined @click="onEdit(w)" class="cursor-pointer mr-1" />
 							<DeleteOutlined @click="onRemove(w[0])" class="cursor-pointer" style="color: red" />
 						</div>
 					</template>
@@ -111,6 +111,7 @@
 			mmwebsdk: '',
 			enable: true,
 			edit: true,
+			type: 'add',
 		}])
 	}
 	const onChangeEnable = (w) => {
@@ -122,19 +123,24 @@
 			findData()
 		})
 	}
-	const onEdit = (id) => {
-
+	const onEdit = (w) => {
+		w[1].edit = true
 	}
-	const onHandleAddWechat = (e) => {
+	const onHandleAddWechat = (e, w) => {
 		if (e) {
-			let data = wechatList.value[0]
+			let data = w[1].type === 'add' ? wechatList.value[0] : w
 			delete data[1].edit
+			delete data[1].type
 
 			wechatDB.setItem(data[0], JSON.parse(JSON.stringify(data[1]))).then(res => {
 				findData()
 			})
 		} else {
-			wechatList.value.shift()
+			if (w[1].type === 'add') {
+				wechatList.value.shift()
+			} else {
+				delete w[1].edit
+			}
 		}
 	}
 
