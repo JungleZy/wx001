@@ -120,6 +120,23 @@
 				</a-button>
 			</div>
 		</div>
+		<div class="w-full p-2 mt-2 bg-white border-radius-6">
+			<div class="top-title">浏览器设置</div>
+			<div class="w-full">
+				<div class="w-full/2 py-2 layout-left-center">
+					<div class="label layout-right-center">倒计时长：</div>
+					<div class="right layout-left-center">
+						<a-switch v-model:checked="core" checked-children="默认浏览器" un-checked-children="自编译浏览器" />
+					</div>
+				</div>
+			</div>
+			<div class="w-full py-2 layout-right-center">
+				<a-button type="primary" @click="onUpdateCore">
+					<LockOutlined />
+					设置
+				</a-button>
+			</div>
+		</div>
 	</div>
 </template>
 <script setup>
@@ -152,6 +169,7 @@
 	const verifyUrl138 = ref('')
 	const lockPassword = ref('')
 	const autoWork = ref(0)
+	const core = ref(true)
 
 	onMounted(async () => {
 		const ip = await networkDB.getItem('api-pool')
@@ -159,6 +177,9 @@
 		const verify138 = await networkDB.getItem('api-verify-138')
 		lockPassword.value = await networkDB.getItem('lock-password')
 		autoWork.value = await networkDB.getItem('autoWork')
+		const c = await networkDB.getItem('core')
+		core.value = c !== null ? c : true
+		console.log(core.value)
 		if (!autoWork.value) {
 			autoWork.value = 0
 		}
@@ -227,6 +248,11 @@
 	const onUpdateAutoWork = () => {
 		networkDB.setItem('autoWork', autoWork.value).then(() => {
 			message.success('锁屏密码设置成功！')
+		})
+	}
+	const onUpdateCore = () => {
+		networkDB.setItem('core', core.value).then(() => {
+			message.success('浏览器设置成功！')
 		})
 	}
 </script>

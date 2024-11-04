@@ -1,6 +1,6 @@
 {
   "name": "wx",
-  "version": "1.0.7",
+  "version": "1.0.10",
   "description": "A fast, desktop software development framework",
   "main": "main.js",
   "scripts": {
@@ -39,7 +39,7 @@
   "keywords": [
     "Electron"
   ],
-  "author": "Jungle, Inc <530353222@qq.com>",
+  "author": "Jungle, Inc",
   "license": "Apache",
   "devDependencies": {
     "@electron/rebuild": "^3.6.2",

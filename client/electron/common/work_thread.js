@@ -1,8 +1,11 @@
 const path = require('path')
+const fs = require('fs-extra')
 let browser = null
 let page = null
 let id = ''
 let cPath = ''
+let core = true
+let userDataDir = ''
 
 async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 	try {
@@ -27,25 +30,37 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		)
 		puppeteer.use(require('puppeteer-extra-plugin-stealth/evasions/navigator.vendor')({ vendor: userAgent.includes('iPhone') ? 'Apple Computer, Inc.' : 'Google Inc.' }))
 		puppeteer.use(require('puppeteer-extra-plugin-stealth/evasions/navigator.hardwareConcurrency')({ hardwareConcurrency: userAgent.includes('iPhone') ? 4 : 8 }))
+		let args = [
+			'--no-sandbox',
+			'--disable-setuid-sandbox',
+			'--window-size=850,1366',
+			'--blink-settings=imagesEnabled=false',
+			'--disable-web-security',
+			'--disable-features=UserAgentClientHint',
+			`--fingerprints=${Math.floor(Math.random() * (9999999 - 1000 + 1)) + 1000}`,
+		]
+		if (core) {
+			args = [
+				'--no-sandbox',
+				'--disable-setuid-sandbox',
+				'--window-size=850,1366',
+				'--blink-settings=imagesEnabled=false',
+				'--disable-web-security',
+				'--disable-features=UserAgentClientHint',
+			]
+		}
 		browser = await puppeteer.launch({
 			ignoreHttpsError: true,
 			headless: false,
 			executablePath: cPath,
+			userDataDir: userDataDir,
 			ignoreDefaultArgs: [
 				'--enable-automation',
 				'--disable-extensions',
 				'--disable-default-apps',
 				'--disable-component-extensions-with-background-pages',
 			],
-			args: [
-				'--no-first-run',
-				'--no-sandbox',
-				'--no-zygote',
-				'--disable-setuid-sandbox',
-				'--window-size=850,1366',
-				'--disable-web-security',
-				'--disable-features=UserAgentClientHint',
-			],
+			args: args,
 		})
 		browser.on('targetdestroyed', async (e) => {
 			await browser.close()
@@ -175,8 +190,10 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		require('./finger/navigator.hardware')(page, options)
 		require('./finger/navigator.language')(page, options)
 		require('./finger/navigator.permissions')(page, options)
-		await require('./finger/webgl')(page, options)
-		await require('./finger/canvas')(page, options)
+		if (core) {
+			await require('./finger/webgl')(page, options)
+			await require('./finger/canvas')(page, options)
+		}
 
 		if (userAgent.includes('iPhone')) {
 			await page.evaluateOnNewDocument(() => {
@@ -232,7 +249,7 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		}
 
 		await page.goto('https://www.dingxiang-inc.com/business/fingerprint')
-		await page.waitForSelector('.fill-hardId', { timeout: 10000, visible: true })
+		// await page.waitForSelector('.fill-hardId', { timeout: 10000, visible: true })
 		await page.goto(url)
 	} catch (e) {
 		process.send({ id: id, type: 'error', message: e.toString() })
@@ -246,17 +263,24 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url) {
 		} catch (e) {
 
 		}
-
 		process.exit(0)
 	}
 }
 
 const argv = process.argv
 id = argv[11]
-// cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-129.0.6668.89', 'chrome-win64', 'chrome.exe')
-cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-130.0.6723.58', 'chrome-win64', 'chrome.exe')
-// cPath = path.join(argv[12], 'puppeteer', 'chrome', 'Chrome-bin', 'chrome.exe')
-run(argv[2], argv[3], parseInt(argv[4]), argv[5], argv[6], JSON.parse(argv[7]), argv[8], argv[9], argv[10]).then()
+if (argv[14] === 'true') {
+	core = true
+	cPath = path.join(argv[12], 'puppeteer', 'chrome', 'win64-130.0.6723.58', 'chrome-win64', 'chrome.exe')
+} else {
+	core = false
+	cPath = path.join(argv[12], 'puppeteer', 'chrome', 'Chrome-bin', 'chrome.exe')
+}
+userDataDir = argv[13]
+fs.ensureDir(userDataDir).then(() => {
+	run(argv[2], argv[3], parseInt(argv[4]), argv[5], argv[6], JSON.parse(argv[7]), argv[8], argv[9], argv[10]).then()
+})
+
 process.on('message', async (m) => {
 	// console.log(m)
 	if (m === 'close') {

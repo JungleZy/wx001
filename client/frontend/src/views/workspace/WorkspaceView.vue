@@ -19,9 +19,10 @@
 				</div>
 			</div>
 			<div class="h-full layout-right-center">
-				<a-input placeholder="请在此输入工作链接" v-model:value="workUrl" style="width: 420px;margin-right: 0.25rem"
+				<a-input placeholder="请在此输入工作链接" v-model:value="workUrl" style="width: 320px;margin-right: 0.25rem"
 								 @blur="onChangeWorkUrl"
 								 addon-before="工作链接" />
+				<a-switch v-model:checked="isWifi" checked-children="wifi" un-checked-children="无限制" />
 				<a-button type="primary" @click="onAddWorkspace('Android')">
 					<AndroidOutlined />
 				</a-button>
@@ -189,7 +190,7 @@
 							删除任务
 						</div>
 						<template v-if="w.status === 0">
-							<template v-if="w.ipType[0] === '家庭宽带' && w.ipType[1] === '城域网' && w.coIp<6">
+							<template v-if="w.ipType[0] === '家庭宽带' && w.ipType[1] === '城域网' && w.coIp<2">
 								<div class="w-full h-1/4 layout-center cursor-pointer"
 										 style="color: #ffffff;border-radius: 0 0 6px 6px;"
 										 :style="{ backgroundColor: '#64a3ff'}">
@@ -226,6 +227,17 @@
 				</div>
 			</div>
 		</div>
+		<div @click="onClearWorkspace()" style="position: fixed;bottom: 12px;left: 12px;cursor: pointer">
+			<svg t="1729923225849" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+					 p-id="4176" width="32" height="32">
+				<path d="M1024 512c0 282.8-229.2 512-512 512S0 794.8 0 512 229.2 0 512 0s512 229.2 512 512" fill="#FF0000"
+							p-id="4177"></path>
+				<path d="M428 424h48v208h-48zM548 424h48v208h-48z" fill="#FFFFFF" p-id="4178"></path>
+				<path
+					d="M736.96 240H646.8l-41.68-82.8A24.064 24.064 0 0 0 583.68 144H441.36c-8.96 0-17.2 5.04-21.36 13.04L377.36 240H212v48h51.04v520c0 13.28 10.72 24 24 24h450c13.28 0 24-10.72 24-24V288h51.04v-48h-75.12zM456 192h112.88l24.16 48H431.36L456 192z m256.96 592H311.04V288H712.96v496z"
+					fill="#FFFFFF" p-id="4179"></path>
+			</svg>
+		</div>
 	</div>
 </template>
 <script setup>
@@ -238,7 +250,7 @@
 	import { ipc } from '@/utils/ipcRenderer.js'
 	import { workspaceApiRoute } from '@/api/main.js'
 	import { nanoid } from 'nanoid'
-	import { message,Modal } from 'ant-design-vue'
+	import { message, Modal } from 'ant-design-vue'
 
 	const phoneData = ref(new Map([['Android', []], ['iPhone', []]]))
 	const wechatData = ref(new Map([['Android', []], ['iPhone', []]]))
@@ -253,6 +265,8 @@
 	const webIds = ref([])
 	const ips = ref(new Map())
 	const autoWork = ref(0)
+	const isWifi = ref(true)
+	const core = ref(true)
 
 	watch(workUrl, () => {
 		webIds.value = []
@@ -273,7 +287,7 @@
 		workspace.value.forEach((value, index) => {
 			if (value.os === 'Android') {
 				if (value.status === 3) {
-					if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 6) {
+					if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 2) {
 						auto_a++
 					} else {
 						auto_no_a++
@@ -286,7 +300,7 @@
 				c++
 			} else if (value.os === 'iPhone') {
 				if (value.status === 3) {
-					if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 6) {
+					if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 2) {
 						auto_i++
 					} else {
 						auto_no_i++
@@ -318,17 +332,17 @@
 				}
 			})
 		} else if (result.type === 'error') {
-			let msg = ''
-			if (result.message.includes('ERR_TUNNEL_CONNECTION_FAILED')) {
-				msg = '代理IP连接失败，请检测当前IP是否已过期！'
-			} else if (result.message.includes('net::ERR_ABORTED')) {
-				msg = '任务由于网络原因被异常中止！'
-			} else if (result.message.includes('Most likely the page has been closed')) {
-				msg = '任务会话已关闭！'
-			} else {
-				msg = result.message
-			}
-			message.error(`任务【${result.id}】执行失败:` + msg)
+			// let msg = ''
+			// if (result.message.includes('ERR_TUNNEL_CONNECTION_FAILED')) {
+			// 	msg = '代理IP连接失败，请检测当前IP是否已过期！'
+			// } else if (result.message.includes('net::ERR_ABORTED')) {
+			// 	msg = '任务由于网络原因被异常中止！'
+			// } else if (result.message.includes('Most likely the page has been closed')) {
+			// 	msg = '任务会话已关闭！'
+			// } else {
+			// 	msg = result.message
+			// }
+			// message.error(`任务【${result.id}】执行失败:` + msg)
 			workspace.value.filter(item => {
 				if (result.id === item.id) {
 					item.status = 4
@@ -336,7 +350,7 @@
 				}
 			})
 		} else if (result.type === 'success') {
-			message.success(`任务【${result.id}】执行成功`)
+			// message.success(`任务【${result.id}】执行成功`)
 			workspace.value.filter(item => {
 				if (result.id === item.id) {
 					item.status = 3
@@ -401,6 +415,8 @@
 		networkDB.iterate((value, key) => {
 			if (networkData.value.get(key)) {
 				networkData.value.get(key).value = value
+			} else if (key === 'core') {
+				core.value = value !== null ? value : true
 			}
 		}).then(() => {
 			const urlParams = getUrlParams(new URL(networkData.value.get('api-pool').value.url))
@@ -437,6 +453,48 @@
 		let wechatList = wechatData.value.get(e)
 		let phone = phoneList[getRandomInt(phoneList.length)]
 		let wechat = wechatList[getRandomInt(wechatList.length)]
+		getIp(id, (time, d, res1, res2) => {
+			const ip3 = getFirstThreeSegmentsOfIP(d.rip ? d.rip : d.ip)
+			let newVar = ips.value.get(ip3)
+			if (newVar) {
+				newVar = newVar + 1
+			} else {
+				newVar = 1
+			}
+			ips.value.set(ip3, newVar)
+			const { ua, browser } = getUserAgent(e, phone, wechat, res2.data.data[7])
+			const number = workspace.value.findIndex(item => item.id === id)
+			const item = {
+				id,
+				os: e,
+				type: phone.type,
+				size: phone.size,
+				wr: phone.webGLRenderer,
+				wv: phone.webGLVendor,
+				version: wechat.version,
+				build: wechat.build,
+				browser: browser,
+				wechat: wechat,
+				ua: ua,
+				ip: d.ip,
+				rip: d.rip,
+				port: d.port,
+				coIp: newVar,
+				ipType: [res1.data.data.scenes.usage_type, res2.data.data[7] ? res2.data.data[7] : '未知'],
+				isp: res2.data.data[4],
+				ipAddress: res2.data.data[1] + res2.data.data[2] + res2.data.data[3],
+				time: time,
+				status: 0,
+				url: workUrl.value,
+				createTime: dayjs().valueOf(),
+				countdown: Date.now() + 1000 * autoWork.value,
+				refresh: false,
+			}
+			workspaceDB(nowDay.value).setItem(id, JSON.parse(JSON.stringify(item)))
+			workspace.value[number] = item
+		})
+	}
+	const getIp = (id, callback) => {
 		ipPool.value.acquireIP().then(res => {
 			workspace.value.forEach(item => {
 				if (item.id === id) {
@@ -447,54 +505,25 @@
 			const d = res.data.data[0]
 			ipPool.value.verifyIP66(d.rip ? d.rip : d.ip).then(res1 => {
 				if (res1.data.code === 200) {
-					ipPool.value.verifyIP138(d.rip ? d.rip : d.ip).then(res2 => {
-						if (res2.status === 200) {
-							const ip3 = getFirstThreeSegmentsOfIP(d.rip ? d.rip : d.ip)
-							let newVar = ips.value.get(ip3)
-							if (newVar) {
-								newVar = newVar + 1
+					if (isWifi.value && res1.data.data.scenes.usage_type !== '家庭宽带') {
+						getIp(id, callback)
+					} else {
+						ipPool.value.verifyIP138(d.rip ? d.rip : d.ip).then(res2 => {
+							if (res2.status === 200) {
+								if (isWifi.value && res2.data.data[7] !== '城域网') {
+									getIp(id, callback)
+								} else {
+									callback(time, d, res1, res2)
+								}
 							} else {
-								newVar = 1
+								workspace.value.shift()
+								message.error({ content: 'IP136:' + res2.data.msg, key: 'work' })
 							}
-							ips.value.set(ip3, newVar)
-							const { ua, browser } = getUserAgent(e, phone, wechat, res2.data.data[7])
-							const number = workspace.value.findIndex(item => item.id === id)
-							const item = {
-								id,
-								os: e,
-								type: phone.type,
-								size: phone.size,
-								wr: phone.webGLRenderer,
-								wv: phone.webGLVendor,
-								version: wechat.version,
-								build: wechat.build,
-								browser: browser,
-								wechat: wechat,
-								ua: ua,
-								ip: d.ip,
-								rip: d.rip,
-								port: d.port,
-								coIp: newVar,
-								ipType: [res1.data.data.scenes.usage_type, res2.data.data[7] ? res2.data.data[7] : '未知'],
-								isp: res2.data.data[4],
-								ipAddress: res2.data.data[1] + res2.data.data[2] + res2.data.data[3],
-								time: time,
-								status: 0,
-								url: workUrl.value,
-								createTime: dayjs().valueOf(),
-								countdown: Date.now() + 1000 * autoWork.value,
-								refresh: false,
-							}
-							workspaceDB(nowDay.value).setItem(id, JSON.parse(JSON.stringify(item)))
-							workspace.value[number] = item
-						} else {
+						}).catch(error => {
 							workspace.value.shift()
-							message.error({ content: 'IP136:' + res2.data.msg, key: 'work' })
-						}
-					}).catch(error => {
-						workspace.value.shift()
-						message.error({ content: 'IP136错误', key: 'work' })
-					})
+							message.error({ content: 'IP136错误', key: 'work' })
+						})
+					}
 				} else {
 					workspace.value.shift()
 					message.error({ content: 'IP66:' + res1.data.msg, key: 'work' })
@@ -658,6 +687,7 @@
 			url: w.url,
 			username: networkData.value.get('api-pool').value.username,
 			password: networkData.value.get('api-pool').value.password,
+			core: core.value,
 		})
 	}
 	const onDeleteWork = (w, index) => {
@@ -682,6 +712,40 @@
 			},
 		})
 
+	}
+	const onClearWorkspace = () => {
+		Modal.confirm({
+			title: '是否清空当前任务?',
+			okText: '确认清空',
+			okType: 'danger',
+			cancelText: '取消清空',
+			onOk() {
+				handleClearWorkspace()
+			},
+			onCancel() {
+				console.log('Cancel')
+			},
+		})
+	}
+	const handleClearWorkspace = () => {
+		workspaceDB(nowDay.value).clear().then(() => {
+			workspace.value = []
+			workspaceDB(nowDay.value).iterate((value, key) => {
+				workspace.value.push(value)
+				if (value.url === workUrl.value) {
+					const ip3 = getFirstThreeSegmentsOfIP(value.rip ? value.rip : value.ip)
+					let newVar = ips.value.get(ip3)
+					if (newVar) {
+						newVar = newVar + 1
+					} else {
+						newVar = 1
+					}
+					ips.value.set(ip3, newVar)
+				}
+			}).then(res => {
+				workspace.value.sort((a, b) => b.createTime - a.createTime)
+			})
+		})
 	}
 </script>
 <style scoped lang="less">
