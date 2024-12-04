@@ -25,11 +25,17 @@
 					</div>
 				</div>
 				<div class="w-full py-2 layout-left-center">
-					<div class="label layout-right-center">链接地址：</div>
+					<div class="label layout-right-center">链接地址1：</div>
 					<div class="right layout-left-center">
 						<a-input v-model:value="url" @change="onChangeUrl" placeholder="链接地址" />
 					</div>
 				</div>
+        <div class="w-full py-2 layout-left-center">
+          <div class="label layout-right-center">链接地址2：</div>
+          <div class="right layout-left-center">
+            <a-input v-model:value="url1" placeholder="链接地址" />
+          </div>
+        </div>
 				<div class="w-full layout-side">
 					<div class="w-1/2 py-2 layout-left-center">
 						<div class="label layout-right-center">账号：</div>
@@ -162,6 +168,7 @@
 		{ name: '24小时', value: 1440 },
 	])
 	const url = ref('')
+  const url1 = ref('')
 	const username = ref('')
 	const password = ref('')
 	const appCode = ref('')
@@ -173,6 +180,7 @@
 
 	onMounted(async () => {
 		const ip = await networkDB.getItem('api-pool')
+    const ip1 = await networkDB.getItem('api-pool1')
 		const verify66 = await networkDB.getItem('api-verify-66')
 		const verify138 = await networkDB.getItem('api-verify-138')
 		lockPassword.value = await networkDB.getItem('lock-password')
@@ -192,6 +200,7 @@
 			time.value = parseInt(urlParams.time)
 			num.value = parseInt(urlParams.num)
 		}
+    url1.value = ip1.url
 		if (verify66) {
 			verifyUrl66.value = verify66.verifyUrl
 		}
@@ -225,6 +234,11 @@
 		}).then(res => {
 			message.success('IP池配置更新成功！')
 		})
+    networkDB.setItem('api-pool1', {
+      url: url1.value,
+      username: username.value,
+      password: password.value,
+    }).then()
 	}
 	const onUpdateIPVerify66 = (() => {
 		networkDB.setItem('api-verify-66', {

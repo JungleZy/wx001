@@ -272,7 +272,8 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
           'sec-ch-ua-mobile': undefined,
           'sec-fetch-user': undefined,
           'upgrade-insecure-requests': undefined,
-          'cache-control': undefined
+          'cache-control': undefined,
+          'user-agent': userAgent
         })
         request.continue({ headers })
       })
@@ -309,7 +310,8 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
         }
         headers = Object.assign({}, headers, {
           'cache-control': 'max-age=0',
-          'accept-encoding': 'gzip, deflate, br, zstd'
+          'accept-encoding': 'gzip, deflate, br, zstd',
+          'user-agent': userAgent
         })
         request.continue({ headers })
       })
@@ -319,17 +321,17 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
     await page.goto(url)
   } catch (e) {
     process.send({ id: id, type: 'error', message: e.toString() })
-    try {
-      await page?.close()
-    } catch (e) {
-
-    }
-    try {
-      await browser?.close()
-    } catch (e) {
-
-    }
-    process.exit(0)
+    // try {
+    //   await page?.close()
+    // } catch (e) {
+    //
+    // }
+    // try {
+    //   await browser?.close()
+    // } catch (e) {
+    //
+    // }
+    // process.exit(0)
   }
 }
 

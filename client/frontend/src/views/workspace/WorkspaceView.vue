@@ -263,6 +263,18 @@
             <a-input placeholder="请在此输入工作链接" class="w-full" v-model:value="workUrl" />
           </div>
         </div>
+        <div class="w-full py-2 layout-left-center">
+          <div class="item-left">安卓</div>
+          <div class="item-right">
+            <a-switch v-model:checked="core1" checked-children="默认浏览器" un-checked-children="自编译浏览器" />
+          </div>
+        </div>
+        <div class="w-full py-2 layout-left-center">
+          <div class="item-left">苹果</div>
+          <div class="item-right">
+            <a-switch v-model:checked="core2" checked-children="默认浏览器" un-checked-children="自编译浏览器" />
+          </div>
+        </div>
         <div class="w-full pt-2 layout-left-center">
           复扫率设定：
         </div>
@@ -355,6 +367,8 @@ const isWifi = ref(true)
 const core = ref(true)
 const isWx = ref(false)
 const open = ref(false)
+const core1 = ref(true)
+const core2 = ref(true)
 
 ipc.on(workspaceApiRoute.workMsg, (event, result) => {
   if (result.type === 'running') {
@@ -412,6 +426,21 @@ watch(nowDay, () => {
     workspace.value.sort((a, b) => b.createTime - a.createTime)
   })
 })
+watch(core1, () => {
+  networkDB.setItem('core1', core1.value).then(() => {
+  })
+})
+watch(core2, () => {
+  networkDB.setItem('core2', core2.value).then(() => {
+  })
+})
+watch(isWx, () => {
+  networkDB.setItem('isWx', isWx.value).then(() => {
+  })
+})
+watch(isWifi, () => {
+  ipPool.value.changeIp(isWifi.value ? networkData.value.get('api-pool').value.url : networkData.value.get('api-pool1').value.url)
+})
 onMounted(async () => {
   await getConfig()
   workspaceBaseDB.setItem(`${nowDay.value}`, nowDay.value)
@@ -438,7 +467,7 @@ onMounted(async () => {
   phoneData.value = new Map([['Android', []], ['iPhone', []]])
   wechatData.value = new Map([['Android', []], ['iPhone', []]])
   browserData.value = []
-  networkData.value = new Map([['api-pool', {}], ['api-verify-66', {}], ['api-verify-138', {}]])
+  networkData.value = new Map([['api-pool', {}], ['api-pool1', {}], ['api-verify-66', {}], ['api-verify-138', {}]])
   phoneDB.iterate((value, key) => {
     if (value.enable) {
       phoneData.value.get(value.os).push(value)
@@ -457,8 +486,6 @@ onMounted(async () => {
   networkDB.iterate((value, key) => {
     if (networkData.value.get(key)) {
       networkData.value.get(key).value = value
-    } else if (key === 'core') {
-      core.value = value !== null ? value : true
     }
   }).then(() => {
     const urlParams = getUrlParams(new URL(networkData.value.get('api-pool').value.url))
@@ -558,6 +585,12 @@ const getConfig = async () => {
   workResweep2.value = workResweep2Value
   workResweep3.value = workResweep3Value
   workResweep4.value = workResweep4Value
+  const c1 = await networkDB.getItem('core1')
+  core1.value = c1 !== null ? c1 : true
+  const c2 = await networkDB.getItem('core2')
+  core2.value = c2 !== null ? c2 : true
+  const iw = await networkDB.getItem('isWx')
+  isWx.value = iw !== null ? iw : true
 }
 const onOpen = () => {
   open.value = true
@@ -595,7 +628,7 @@ const getScale = () => {
   }
   let distributedValues = ratios.map(ratio => Math.floor((ratio / totalRatio) * totalValue))
   const randomNumber = getRandomNumber(1, 100)
-  console.log(distributedValues, randomNumber)
+  // console.log(distributedValues, randomNumber)
   // 计算累加值
   let cumulativeSum = 0
   for (let i = 0; i < distributedValues.length; i++) {
@@ -620,17 +653,6 @@ const onWorkTimeFinish = (w) => {
 const getFirstThreeSegmentsOfIP = (ipAddress) => {
   return ipAddress.split('.').slice(0, 3).join('.')
 }
-
-function updateIps(ip3) {
-  let newVar = ips.value.get(ip3)
-  if (newVar) {
-    newVar = newVar + 1
-  } else {
-    newVar = 1
-  }
-  ips.value.set(ip3, newVar)
-}
-
 const onAddWorkspace = (e) => {
   if (!workUrl.value) {
     message.error({ content: '添加失败，工作链接不能为空！', key: 'work' })
@@ -644,7 +666,13 @@ const onAddWorkspace = (e) => {
   let wechat = wechatList[getRandomInt(wechatList.length)]
   getIp(id, async (time, d, res1, res2) => {
     const ip3 = getFirstThreeSegmentsOfIP(d.rip ? d.rip : d.ip)
-    updateIps(ip3)
+    let newVar = ips.value.get(ip3)
+    if (newVar) {
+      newVar = newVar + 1
+    } else {
+      newVar = 1
+    }
+    ips.value.set(ip3, newVar)
     const scale = getScale()
     const number = workspace.value.findIndex(item => item.id === id)
     let item = {
@@ -686,7 +714,7 @@ const onAddWorkspace = (e) => {
     item.createTime = dayjs().valueOf()
     item.countdown = Date.now() + 1000 * autoWork.value
     item.refresh = false
-    item.random = getRandomValue()
+    item.random = getRandomValue(item.os)
     item.randomLeft = Math.floor(Math.random() * 80)
     item.randomRight = Math.floor(Math.random() * 80)
     item.randomWEBGL = Math.floor(Math.random() * 1000)
@@ -695,8 +723,8 @@ const onAddWorkspace = (e) => {
   })
 }
 
-function getRandomValue() {
-  return !core.value ? Math.floor(Math.random() * (9999999 - 1000 + 1)) + 1000 : secureRandomNumber() + secureRandomNumber() + secureRandomNumber() + secureRandomNumber()
+function getRandomValue(os) {
+  return !(os === 'Android' ? core1.value : core2.value) ? Math.floor(Math.random() * (9999999 - 1000 + 1)) + 1000 : secureRandomNumber() + secureRandomNumber() + secureRandomNumber() + secureRandomNumber()
 }
 
 function secureRandomNumber() {
@@ -912,7 +940,7 @@ const handleRun = (w) => {
     url: w.url,
     username: networkData.value.get('api-pool').value.username,
     password: networkData.value.get('api-pool').value.password,
-    core: core.value,
+    core: w.os === 'Android' ? core1.value : core2.value,
     runCount: w.runCount,
     resweep: w.resweep,
     random: w.random,
