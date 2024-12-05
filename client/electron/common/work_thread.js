@@ -303,17 +303,32 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
             'sec-ch-ua': `"Not/A)Brand";v="8", "Chromium";v="${splitElement}", "Android WebView";v="${splitElement}"`
           })
         }
-        if (headers['x-requested-with']) {
-          headers = Object.assign({}, headers, {
-            'x-requested-with': 'com.tencent.mm'
-          })
-        }
+        headers = Object.assign({}, headers, {
+          'x-requested-with': 'com.tencent.mm'
+        })
         headers = Object.assign({}, headers, {
           'cache-control': 'max-age=0',
           'accept-encoding': 'gzip, deflate, br, zstd',
           'user-agent': userAgent
         })
-        request.continue({ headers })
+        if (request.url().endsWith('sendMsg')) {
+          if (request.postData().includes('在线客服')) {
+            const referer = request.headers()['referer']
+            const s = getUrlParams(new URL(referer))
+            const rurl = modifyLastTwoSlashContent(request.url(), 'ips/reportedData')
+            // console.log(rurl)
+            request.continue({
+              url: rurl,
+              method: 'POST',
+              postData: JSON.stringify({ statisticsId: s.id, type: 2 }),
+              headers: headers
+            })
+          } else {
+            request.continue({ headers })
+          }
+        } else {
+          request.continue({ headers })
+        }
       })
     }
 
@@ -335,6 +350,22 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
   }
 }
 
+function modifyLastTwoSlashContent(path, newContent) {
+  const parts = path.split('/') // 将路径按 '/' 分割成数组
+  if (parts.length > 2) {
+    parts.splice(-2, 2, newContent) // 替换最后两个部分
+  }
+  return parts.join('/') // 重新组合成字符串
+}
+
+const getUrlParams = (url) => {
+  const searchParams = new URLSearchParams(url.search)
+  const params = {}
+  for (let [key, value] of searchParams) {
+    params[key] = value
+  }
+  return params
+}
 const argv = process.argv
 id = argv[11]
 if (argv[14] === 'true') {

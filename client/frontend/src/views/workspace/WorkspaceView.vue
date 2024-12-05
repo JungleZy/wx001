@@ -724,7 +724,13 @@ const onAddWorkspace = (e) => {
 }
 
 function getRandomValue(os) {
-  return !(os === 'Android' ? core1.value : core2.value) ? Math.floor(Math.random() * (9999999 - 1000 + 1)) + 1000 : secureRandomNumber() + secureRandomNumber() + secureRandomNumber() + secureRandomNumber()
+  let randomNumber
+  if (os === 'Android') {
+    randomNumber = core1.value ? secureRandomNumber() + secureRandomNumber() + secureRandomNumber() + secureRandomNumber() : Math.floor(Math.random() * (9999999 - 1000 + 1)) + 1000
+  } else {
+    randomNumber = core2.value ? secureRandomNumber() + secureRandomNumber() + secureRandomNumber() + secureRandomNumber() : Math.floor(Math.random() * (9999999 - 1000 + 1)) + 1000
+  }
+  return randomNumber
 }
 
 function secureRandomNumber() {
@@ -733,11 +739,10 @@ function secureRandomNumber() {
 
 const getIp = (id, callback) => {
   ipPool.value.acquireIP().then(res => {
-    workspace.value.forEach(item => {
-      if (item.id === id) {
-        item.type = 1
-      }
-    })
+    const itemIndex = workspace.value.findIndex(item => item.id === id)
+    if (itemIndex !== -1) {
+      workspace.value[itemIndex].type = 1
+    }
     const time = Date.now() + 1000 * 60 * ipDuration.value
     const d = res.data.data[0]
     ipPool.value.verifyIP66(d.rip ? d.rip : d.ip).then(res1 => {
@@ -753,13 +758,10 @@ const getIp = (id, callback) => {
                 callback(time, d, res1, res2)
               }
             } else {
-              workspace.value.shift()
-              message.error({ content: 'IP138:' + res2.data.msg, key: 'work' })
+              handleShiftAndError('IP138', res2.data.msg)
             }
           }).catch(error => {
-            console.log(error)
-            workspace.value.shift()
-            message.error({ content: 'IP138错误', key: 'work' })
+            handleShiftAndError('IP138', 'IP138错误')
           })
         }
       } else {
@@ -767,35 +769,56 @@ const getIp = (id, callback) => {
         message.error({ content: 'IP66:' + res1.data.msg, key: 'work' })
       }
     }).catch(error => {
-      workspace.value.shift()
-      message.error({ content: 'IP66错误', key: 'work' })
+      handleShiftAndError('IP66', 'IP66错误')
     })
   }).catch(error => {
-    workspace.value.shift()
-    message.error({ content: error.response.data.msg, key: 'work' })
+    handleShiftAndError('AcquireIP', error.response.data.msg)
   })
+
+  function handleShiftAndError(source, msg) {
+    workspace.value.shift()
+    message.error({ content: `${source}:${msg}`, key: 'work' })
+  }
 }
 const getUserAgent = (e, phone, wechat, netType) => {
-  let HEAD = ''
-  let MAC = ''
-  let TAI = ''
-  let WXV = ''
-  let browserSelect = null
-  if (e === 'Android') {
-    browserSelect = browserData.value[getRandomInt(browserData.value.length)]
-    HEAD = 'Linux'
-    MAC = phone.code + '; wv'
-    WXV = ` Version/4.0 Chrome/${browserSelect.version} Mobile Safari/${phone.webkit} XWEB/${wechat.xweb} MMWEBSDK/${wechat.mmwebsdk} MMWEBID/${getWEBID()} MicroMessenger/${wechat.version}(${wechat.build}) WeChat/arm64 Weixin`
-    TAI = ' ABI/arm64'
-  } else if (e === 'iPhone') {
-    HEAD = 'iPhone'
-    MAC = phone.code
-    WXV = ` Mobile/15E148 MicroMessenger/${wechat.version}(${wechat.build})`
+  if (!browserData.value || !phone || !wechat) {
+    throw new Error('Required parameters are missing or invalid')
   }
+
+  const browserSelect = e === 'Android' ? getBrowserSelect() : null
+  const HEAD = e === 'Android' ? 'Linux' : 'iPhone'
+  const MAC = e === 'Android' ? `${phone.code}; wv` : phone.code
+  const WXV = getWXV(e, phone, wechat, browserSelect)
+  const TAI = e === 'Android' ? ' ABI/arm64' : ''
+
   return {
     ua: `Mozilla/5.0 (${HEAD}; ${MAC}) AppleWebKit/${phone.webkit} (KHTML, like Gecko)${WXV} NetType/${netType === '城域网' ? 'WIFI' : '4G'} Language/zh_CN${TAI}`,
     browser: browserSelect
   }
+}
+const getBrowserSelect = () => {
+  return browserData.value[getSecureRandomInt(browserData.value.length)]
+}
+
+const getWXV = (e, phone, wechat, browserSelect) => {
+  if (e === 'Android') {
+    return ` Version/4.0 Chrome/${browserSelect.version} Mobile Safari/${phone.webkit} XWEB/${wechat.xweb} MMWEBSDK/${wechat.mmwebsdk} MMWEBID/${getWEBID()} MicroMessenger/${sanitizeVersion(wechat.version)}(${sanitizeBuild(wechat.build)}) WeChat/arm64 Weixin`
+  } else if (e === 'iPhone') {
+    return ` Mobile/15E148 MicroMessenger/${sanitizeVersion(wechat.version)}(${sanitizeBuild(wechat.build)})`
+  }
+  return ''
+}
+
+const getSecureRandomInt = (max) => {
+  return Math.floor(Math.random() * max)
+}
+
+const sanitizeVersion = (version) => {
+  return version.replace(/[^a-zA-Z0-9.]/g, '')
+}
+
+const sanitizeBuild = (build) => {
+  return build.replace(/[^a-zA-Z0-9.]/g, '')
 }
 const getWEBID = () => {
   const id = getRandomNumber(1, 9999)
@@ -910,7 +933,7 @@ const onRun = (w, index) => {
   }
 }
 const handleRun = (w) => {
-  // item.runCount <= item.resweep)
+  const apiPool = networkData.value.get('api-pool').value
   w.status = 1
   ipc.invoke(workspaceApiRoute.run, {
     id: w.id,
@@ -938,8 +961,8 @@ const handleRun = (w) => {
     wr: w.wr,
     wv: w.wv,
     url: w.url,
-    username: networkData.value.get('api-pool').value.username,
-    password: networkData.value.get('api-pool').value.password,
+    username: apiPool.username,
+    password: apiPool.password,
     core: w.os === 'Android' ? core1.value : core2.value,
     runCount: w.runCount,
     resweep: w.resweep,
