@@ -34,7 +34,7 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--window-size=850,1366',
-      '--blink-settings=imagesEnabled=false',
+      // '--blink-settings=imagesEnabled=false',
       '--disable-web-security',
       '--disable-features=UserAgentClientHint',
       `--fingerprints=${random}`
@@ -44,13 +44,13 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--window-size=850,1366',
-        '--blink-settings=imagesEnabled=false',
+        // '--blink-settings=imagesEnabled=false',
         '--disable-web-security',
         '--disable-features=UserAgentClientHint'
       ]
     }
     browser = await puppeteer.launch({
-      ignoreHttpsError: true,
+      ignoreHttpsErrors: true,
       headless: false,
       executablePath: cPath,
       userDataDir: userDataDir,
@@ -333,20 +333,11 @@ async function run(userAgent, ip, port, username, password, size, wr, wv, url, r
     }
 
     await page.goto('https://www.dingxiang-inc.com/business/fingerprint')
+
     await page.goto(url)
   } catch (e) {
+    console.log(e.toString())
     process.send({ id: id, type: 'error', message: e.toString() })
-    // try {
-    //   await page?.close()
-    // } catch (e) {
-    //
-    // }
-    // try {
-    //   await browser?.close()
-    // } catch (e) {
-    //
-    // }
-    // process.exit(0)
   }
 }
 

@@ -92,6 +92,23 @@
 				</a-button>
 			</div>
 		</div>
+    <div class="w-full p-2 mt-2 bg-white border-radius-6">
+        <div class="top-title">VPN校验配置</div>
+      <div class="w-full">
+        <div class="w-full py-2 layout-left-center">
+          <div class="label layout-right-center">校验地址：</div>
+          <div class="right layout-left-center">
+            <a-input v-model:value="verifyVPNUrl" placeholder="校验地址" />
+          </div>
+        </div>
+      </div>
+      <div class="w-full py-2 layout-right-center">
+        <a-button type="primary" @click="onUpdateVerifyVPNUrl">
+          <CloudSyncOutlined />
+          更新
+        </a-button>
+      </div>
+    </div>
 		<div class="w-full p-2 mt-2 bg-white border-radius-6">
 			<div class="top-title">隐私设置</div>
 			<div class="w-full">
@@ -177,17 +194,18 @@
 	const lockPassword = ref('')
 	const autoWork = ref(0)
 	const core = ref(true)
+  const verifyVPNUrl = ref('')
 
 	onMounted(async () => {
 		const ip = await networkDB.getItem('api-pool')
     const ip1 = await networkDB.getItem('api-pool1')
 		const verify66 = await networkDB.getItem('api-verify-66')
 		const verify138 = await networkDB.getItem('api-verify-138')
+    const verifyVPN = await networkDB.getItem('api-verify-vpn')
 		lockPassword.value = await networkDB.getItem('lock-password')
 		autoWork.value = await networkDB.getItem('autoWork')
 		const c = await networkDB.getItem('core')
 		core.value = c !== null ? c : true
-		console.log(core.value)
 		if (!autoWork.value) {
 			autoWork.value = 0
 		}
@@ -207,18 +225,21 @@
 		if (verify138) {
 			verifyUrl138.value = verify138.verifyUrl
 		}
+    if (verifyVPN) {
+      verifyVPNUrl.value = verifyVPN.verifyUrl
+    }
 	})
-	watch(secret, () => {
-		url.value = replaceUrlParam(url.value, 'secret', secret.value)
-	})
-	watch(time, () => {
-		url.value = replaceUrlParam(url.value, 'time', time.value)
-	})
-	watch(num, () => {
-		url.value = replaceUrlParam(url.value, 'num', num.value)
-	})
+	// watch(secret, () => {
+	// 	url.value = replaceUrlParam(url.value, 'secret', secret.value)
+	// })
+	// watch(time, () => {
+	// 	url.value = replaceUrlParam(url.value, 'time', time.value)
+	// })
+	// watch(num, () => {
+	// 	url.value = replaceUrlParam(url.value, 'num', num.value)
+	// })
 	watch(appCode, () => {
-		verifyUrl.value = replaceUrlParam(verifyUrl.value, 'AppCode', appCode.value)
+		// verifyUrl.value = replaceUrlParam(verifyUrl.value, 'AppCode', appCode.value)
 	})
 	const onChangeUrl = () => {
 		const urlParams = getUrlParams(new URL(url.value))
@@ -254,6 +275,13 @@
 			message.success('IP校验配置更新成功！')
 		})
 	})
+  const onUpdateVerifyVPNUrl = (() => {
+    networkDB.setItem('api-verify-vpn', {
+      verifyUrl: verifyVPNUrl.value,
+    }).then(res => {
+      message.success('IP VPN校验配置更新成功！')
+    })
+  })
 	const onUpdateLockPassword = () => {
 		networkDB.setItem('lock-password', lockPassword.value).then(() => {
 			message.success('锁屏密码设置成功！')

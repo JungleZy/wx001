@@ -174,9 +174,19 @@
               </div>
               <div class="item w-full layout-left-top">
                 <div class="label layout-right-center">复扫次数：</div>
-                <div style="width: calc(100% - 70px)">
+                <div style="width: calc(50% - 70px)">
                   {{ item.resweep === 0 ? '不复扫' : `${item.runCount === 0 ? 0 : item.runCount - 1}/${item.resweep}次`
                   }}
+                </div>
+                <div class="label layout-right-center">是否代理：</div>
+                <div style="width: calc(50% - 70px)">
+                  <template v-if="item.isProxy">
+                    <span v-if="item.isProxy==='是'" style="color: #ff0000">是</span>
+                    <span v-else style="color: #0060ff">否</span>
+                  </template>
+                  <template v-else>
+                    <span style="color: #000000">未知</span>
+                  </template>
                 </div>
               </div>
               <div class="item w-full layout-left-top">
@@ -198,7 +208,8 @@
                 删除任务
               </div>
               <template v-if="item.status === 0">
-                <template v-if="item.ipType[0] === '家庭宽带' && item.ipType[1] === '城域网' && item.coIp<2">
+                <template
+                  v-if="item.ipType[0] === '家庭宽带' && item.ipType[1] === '城域网' && item.isProxy !== '是' && item.coIp<2">
                   <div class="w-full h-1/4 layout-center cursor-pointer"
                        style="color: #ffffff;border-radius: 0 0 6px 6px;"
                        :style="{ backgroundColor: '#64a3ff'}">
@@ -261,6 +272,12 @@
           <div class="item-left">工作链接</div>
           <div class="item-right">
             <a-input placeholder="请在此输入工作链接" class="w-full" v-model:value="workUrl" />
+          </div>
+        </div>
+        <div class="w-full py-2 layout-left-center">
+          <div class="item-left">动态ID</div>
+          <div class="item-right">
+            <a-switch v-model:checked="dynamicId" checked-children="是" un-checked-children="否" />
           </div>
         </div>
         <div class="w-full py-2 layout-left-center">
@@ -331,7 +348,16 @@
 </template>
 <script setup>
 import { AndroidOutlined, AppleOutlined, LoadingOutlined, DownOutlined } from '@ant-design/icons-vue'
-import { phoneDB, wechatDB, browserDB, networkDB, workspaceDB, workspaceBaseDB, configDB } from '@/common/DB.js'
+import {
+  phoneDB,
+  wechatDB,
+  browserDB,
+  networkDB,
+  workspaceDB,
+  workspaceBaseDB,
+  configDB,
+  webidsDB
+} from '@/common/DB.js'
 import { onMounted, ref, watch, computed } from 'vue'
 import { getRandomInt, getRandomNumber, getRandomType, getUrlParams } from '@/utils/Utlis.js'
 import { IpPool } from '@/utils/IpPool.js'
@@ -347,7 +373,7 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_-', 10)
 const phoneData = ref(new Map([['Android', []], ['iPhone', []]]))
 const wechatData = ref(new Map([['Android', []], ['iPhone', []]]))
 const browserData = ref([])
-const networkData = ref(new Map([['api-pool', {}], ['api-verify', {}], ['api-verify-66', {}], ['api-verify-138', {}]]))
+const networkData = ref(new Map([['api-pool', {}], ['api-verify', {}], ['api-verify-66', {}], ['api-verify-138', {}], ['api-verify-vpn', {}]]))
 const workspace = ref([])
 const ipPool = ref(null)
 const ipDuration = ref(3)
@@ -369,6 +395,7 @@ const isWx = ref(false)
 const open = ref(false)
 const core1 = ref(true)
 const core2 = ref(true)
+const dynamicId = ref(false)
 
 ipc.on(workspaceApiRoute.workMsg, (event, result) => {
   if (result.type === 'running') {
@@ -413,10 +440,6 @@ ipc.on(workspaceApiRoute.workMsg, (event, result) => {
       }
     })
   }
-})
-watch(workUrl, () => {
-  webIds.value = []
-  ips.value = new Map()
 })
 watch(nowDay, () => {
   workspace.value = []
@@ -467,7 +490,7 @@ onMounted(async () => {
   phoneData.value = new Map([['Android', []], ['iPhone', []]])
   wechatData.value = new Map([['Android', []], ['iPhone', []]])
   browserData.value = []
-  networkData.value = new Map([['api-pool', {}], ['api-pool1', {}], ['api-verify-66', {}], ['api-verify-138', {}]])
+  networkData.value = new Map([['api-pool', {}], ['api-pool1', {}], ['api-verify-66', {}], ['api-verify-138', {}], ['api-verify-vpn', {}]])
   phoneDB.iterate((value, key) => {
     if (value.enable) {
       phoneData.value.get(value.os).push(value)
@@ -493,11 +516,12 @@ onMounted(async () => {
     ipPool.value = new IpPool({
       ipUrl: networkData.value.get('api-pool').value.url,
       verifyUrl66: networkData.value.get('api-verify-66').value.verifyUrl,
-      verifyUrl138: networkData.value.get('api-verify-138').value.verifyUrl
+      verifyUrl138: networkData.value.get('api-verify-138').value.verifyUrl,
+      verifyVPNUrl: networkData.value.get('api-verify-vpn').value.verifyUrl
     })
   })
   autoWork.value = await networkDB.getItem('autoWork')
-
+  webIds.value = await webidsDB.getItem('ids') ?? []
 })
 const statistics = computed(() => calculateStatistics(workspace.value))
 const calculateStatistics = (workspace) => {
@@ -534,7 +558,7 @@ const calculateStatistics = (workspace) => {
 }
 const updateAndroidStats = (value, a, as, ae, c, auto_a, auto_no_a) => {
   if (value.status === 3) {
-    if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 2) {
+    if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.isProxy !== '是' && value.coIp < 2) {
       auto_a++
     } else {
       auto_no_a++
@@ -548,7 +572,7 @@ const updateAndroidStats = (value, a, as, ae, c, auto_a, auto_no_a) => {
 }
 const updateIPhoneStats = (value, i, is, ie, c, auto_i, auto_no_i) => {
   if (value.status === 3) {
-    if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.coIp < 2) {
+    if (value.ipType[0] === '家庭宽带' && value.ipType[1] === '城域网' && value.isProxy !== '是' && value.coIp < 2) {
       auto_i++
     } else {
       auto_no_i++
@@ -570,9 +594,9 @@ const fetchConfigItem = async (key, defaultValue = 0) => {
   }
 }
 const getConfig = async () => {
-  let workUrlValue, workResweepValue, workResweep1Value, workResweep2Value, workResweep3Value, workResweep4Value
-  [workUrlValue, workResweepValue, workResweep1Value, workResweep2Value, workResweep3Value, workResweep4Value] = await Promise.all([
+  let [workUrlValue, dynamicIdValue, workResweepValue, workResweep1Value, workResweep2Value, workResweep3Value, workResweep4Value] = await Promise.all([
     fetchConfigItem('workspaceUrl', ''),
+    fetchConfigItem('dynamicId', false),
     fetchConfigItem('workResweep'),
     fetchConfigItem('workResweep1'),
     fetchConfigItem('workResweep2'),
@@ -580,6 +604,7 @@ const getConfig = async () => {
     fetchConfigItem('workResweep4')
   ])
   workUrl.value = workUrlValue
+  dynamicId.value = dynamicIdValue
   workResweep.value = workResweepValue
   workResweep1.value = workResweep1Value
   workResweep2.value = workResweep2Value
@@ -604,11 +629,15 @@ const handleCancel = () => {
 const handleOk = () => {
   loading.value = true
   configDB.setItem('workspaceUrl', workUrl.value)
+  configDB.setItem('dynamicId', dynamicId.value)
   configDB.setItem('workResweep', workResweep.value)
   configDB.setItem('workResweep1', workResweep1.value)
   configDB.setItem('workResweep2', workResweep2.value)
   configDB.setItem('workResweep3', workResweep3.value)
   configDB.setItem('workResweep4', workResweep4.value)
+  webidsDB.setItem('ids', [])
+  webIds.value = []
+  ips.value = new Map()
   loading.value = false
   open.value = false
   message.success('工作空间新建成功！')
@@ -710,16 +739,34 @@ const onAddWorkspace = (e) => {
     item.status = 0
     item.resweep = scale
     item.runCount = 0
-    item.url = workUrl.value
+    let newUrl = workUrl.value
+    if (dynamicId.value) {
+      newUrl = workUrl.value + onRR()
+    }
+    item.url = newUrl
     item.createTime = dayjs().valueOf()
     item.countdown = Date.now() + 1000 * autoWork.value
+    item.dynamicId = dynamicId.value
     item.refresh = false
     item.random = getRandomValue(item.os)
     item.randomLeft = Math.floor(Math.random() * 80)
     item.randomRight = Math.floor(Math.random() * 80)
     item.randomWEBGL = Math.floor(Math.random() * 1000)
-    await workspaceDB(nowDay.value).setItem(id, JSON.parse(JSON.stringify(item)))
-    workspace.value[number] = item
+    item.isProxy = ''
+    if (networkData.value.get('api-verify-vpn').value.verifyUrl) {
+      ipPool.value.verifyVPN(d.rip ? d.rip : d.ip).then(async res => {
+        if (res.data.code === 200) {
+          const ddd = res.data.data
+          console.log(ddd)
+          item.isProxy = ddd.proxy.is_proxy
+        }
+        await workspaceDB(nowDay.value).setItem(id, JSON.parse(JSON.stringify(item)))
+        workspace.value[number] = item
+      })
+    } else {
+      await workspaceDB(nowDay.value).setItem(id, JSON.parse(JSON.stringify(item)))
+      workspace.value[number] = item
+    }
   })
 }
 
@@ -743,7 +790,7 @@ const getIp = (id, callback) => {
     if (itemIndex !== -1) {
       workspace.value[itemIndex].type = 1
     }
-    const time = Date.now() + 1000 * 60 * ipDuration.value
+    const time = Date.now() + 1000 * 60 * 5
     const d = res.data.data[0]
     ipPool.value.verifyIP66(d.rip ? d.rip : d.ip).then(res1 => {
       if (res1.data.code === 200) {
@@ -780,6 +827,51 @@ const getIp = (id, callback) => {
     message.error({ content: `${source}:${msg}`, key: 'work' })
   }
 }
+
+// const getIp = (id, callback) => {
+//   ipPool.value.acquireIP().then(res => {
+//     const itemIndex = workspace.value.findIndex(item => item.id === id)
+//     if (itemIndex !== -1) {
+//       workspace.value[itemIndex].type = 1
+//     }
+//     const time = Date.now() + 1000 * 60 * ipDuration.value
+//     const d = res.data.data[0]
+//     ipPool.value.verifyIP66(d.rip ? d.rip : d.ip).then(res1 => {
+//       if (res1.data.code === 200) {
+//         if (isWifi.value && res1.data.data.scenes.usage_type !== '家庭宽带') {
+//           getIp(id, callback)
+//         } else {
+//           ipPool.value.verifyIP138(d.rip ? d.rip : d.ip).then(res2 => {
+//             if (res2.status === 200) {
+//               if (isWifi.value && res2.data.data[7] !== '城域网') {
+//                 getIp(id, callback)
+//               } else {
+//                 callback(time, d, res1, res2)
+//               }
+//             } else {
+//               handleShiftAndError('IP138', res2.data.msg)
+//             }
+//           }).catch(error => {
+//             handleShiftAndError('IP138', 'IP138错误')
+//           })
+//         }
+//       } else {
+//         workspace.value.shift()
+//         message.error({ content: 'IP66:' + res1.data.msg, key: 'work' })
+//       }
+//     }).catch(error => {
+//       handleShiftAndError('IP66', 'IP66错误')
+//     })
+//   }).catch(error => {
+//     handleShiftAndError('AcquireIP', error.response.data.msg)
+//   })
+//
+//   function handleShiftAndError(source, msg) {
+//     workspace.value.shift()
+//     message.error({ content: `${source}:${msg}`, key: 'work' })
+//   }
+// }
+
 const getUserAgent = (e, phone, wechat, netType) => {
   if (!browserData.value || !phone || !wechat) {
     throw new Error('Required parameters are missing or invalid')
@@ -799,7 +891,6 @@ const getUserAgent = (e, phone, wechat, netType) => {
 const getBrowserSelect = () => {
   return browserData.value[getSecureRandomInt(browserData.value.length)]
 }
-
 const getWXV = (e, phone, wechat, browserSelect) => {
   if (e === 'Android') {
     return ` Version/4.0 Chrome/${browserSelect.version} Mobile Safari/${phone.webkit} XWEB/${wechat.xweb} MMWEBSDK/${wechat.mmwebsdk} MMWEBID/${getWEBID()} MicroMessenger/${sanitizeVersion(wechat.version)}(${sanitizeBuild(wechat.build)}) WeChat/arm64 Weixin`
@@ -808,21 +899,21 @@ const getWXV = (e, phone, wechat, browserSelect) => {
   }
   return ''
 }
-
 const getSecureRandomInt = (max) => {
   return Math.floor(Math.random() * max)
 }
-
 const sanitizeVersion = (version) => {
   return version.replace(/[^a-zA-Z0-9.]/g, '')
 }
-
 const sanitizeBuild = (build) => {
   return build.replace(/[^a-zA-Z0-9.]/g, '')
 }
 const getWEBID = () => {
   const id = getRandomNumber(1, 9999)
+  console.log(webIds.value)
   if (webIds.value.findIndex(i => i === id) === -1) {
+    webIds.value.push(id)
+    webidsDB.setItem('ids', JSON.parse(JSON.stringify(webIds.value)))
     return id
   } else {
     return getWEBID()
@@ -906,10 +997,6 @@ const onRefreshUA = async (w, index) => {
 }
 const onRun = (w, index) => {
   if (w.status === 0 || w.status === 3 || w.status === 4) {
-    // if (w.ipType !== '普通宽带' && w.ipType !== '移动数据') {
-    // 	message.error('执行任务失败：当前IP类型错误，请刷新IP后重试')
-    // 	return
-    // }
     if (Date.now() - w.time >= 0) {
       message.error({ content: '执行任务失败：当前IP已失效，请刷新IP后重试', key: 'work' })
       return
@@ -932,12 +1019,16 @@ const onRun = (w, index) => {
     handleRun(w)
   }
 }
+const onRR = () => {
+  const r = '0000' + (Math.floor(Math.random() * 9999) + 1) + ''
+  return r.slice(-4)
+}
 const handleRun = (w) => {
   const apiPool = networkData.value.get('api-pool').value
   w.status = 1
   ipc.invoke(workspaceApiRoute.run, {
     id: w.id,
-    ip: w.ip,
+    ip: w.rip ? w.rip : w.ip,
     port: w.port,
     ua: w.ua,
     size: {

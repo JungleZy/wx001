@@ -23,3 +23,6 @@ export const browserDB = localforage.createInstance({
 export const configDB = localforage.createInstance({
   name: 'config'
 })
+export const webidsDB = localforage.createInstance({
+  name: 'webids'
+})
