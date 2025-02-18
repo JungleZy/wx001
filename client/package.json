@@ -1,6 +1,6 @@
 {
   "name": "wx",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "A fast, desktop software development framework",
   "main": "main.js",
   "scripts": {

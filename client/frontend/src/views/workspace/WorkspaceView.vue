@@ -757,7 +757,6 @@ const onAddWorkspace = (e) => {
       ipPool.value.verifyVPN(d.rip ? d.rip : d.ip).then(async res => {
         if (res.data.code === 200) {
           const ddd = res.data.data
-          console.log(ddd)
           item.isProxy = ddd.proxy.is_proxy
         }
         await workspaceDB(nowDay.value).setItem(id, JSON.parse(JSON.stringify(item)))
@@ -769,7 +768,6 @@ const onAddWorkspace = (e) => {
     }
   })
 }
-
 function getRandomValue(os) {
   let randomNumber
   if (os === 'Android') {
@@ -779,11 +777,9 @@ function getRandomValue(os) {
   }
   return randomNumber
 }
-
 function secureRandomNumber() {
   return Math.random().toString(36).toUpperCase().slice(2, -1)
 }
-
 const getIp = (id, callback) => {
   ipPool.value.acquireIP().then(res => {
     const itemIndex = workspace.value.findIndex(item => item.id === id)
@@ -1028,7 +1024,7 @@ const handleRun = (w) => {
   w.status = 1
   ipc.invoke(workspaceApiRoute.run, {
     id: w.id,
-    ip: w.rip ? w.rip : w.ip,
+    ip: w.ip,
     port: w.port,
     ua: w.ua,
     size: {
